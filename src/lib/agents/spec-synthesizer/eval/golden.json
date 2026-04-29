@@ -1,0 +1,20 @@
+{
+  "cases": [
+    {
+      "id": "spec-001",
+      "description": "Synthesizes coherent PRD from Clerk debate Slack thread",
+      "input": {
+        "sourceIds": ["msg-341", "msg-342", "msg-343", "msg-344", "msg-346"],
+        "sourceTypes": ["slack_thread", "slack_thread", "slack_thread", "slack_thread", "slack_thread"],
+        "title": "Auth Migration v2 — Clerk vs Auth0 Formal Decision",
+        "workspaceId": "ws-hartwell-001"
+      },
+      "expected": {
+        "hasTitle": true,
+        "hasBody": true,
+        "minCitations": 1,
+        "hasOpenQuestions": true
+      }
+    }
+  ]
+}

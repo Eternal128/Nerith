@@ -1,0 +1,18 @@
+{
+  "cases": [
+    {
+      "id": "retro-001",
+      "description": "Sprint 24 retro identifies missed issues",
+      "input": {
+        "sprintNumber": 24,
+        "workspaceId": "ws-hartwell-001",
+        "sprintStartDate": "2025-04-01",
+        "sprintEndDate": "2025-04-14"
+      },
+      "expected": {
+        "hasNarrative": true,
+        "hasActionItems": true
+      }
+    }
+  ]
+}

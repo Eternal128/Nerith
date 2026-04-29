@@ -1,0 +1,19 @@
+{
+  "cases": [
+    {
+      "id": "audit-001",
+      "description": "Clean drift event passes audit",
+      "input": {
+        "agentOutput": {
+          "headline": "PR #482 ships Clerk; ADR-007 mandates Auth0",
+          "evidence": "PR #482 touches clerk.ts; ADR-007 specifies Auth0",
+          "nodeIds": [],
+          "confidence": 0.97
+        },
+        "agentName": "drift-watcher",
+        "workspaceId": "ws-hartwell-001"
+      },
+      "expected": { "passed": true, "recommendation": "approve" }
+    }
+  ]
+}
