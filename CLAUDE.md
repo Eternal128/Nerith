@@ -13,7 +13,7 @@ This is **not** the Next.js you know from tutorials. Read this file before touch
 
 ## Before Assuming API Shapes
 
-Read `node_modules/next/dist/docs/` before assuming how Next.js APIs work. Specifically:
+Check the [Next.js 15 App Router docs](https://nextjs.org/docs/app) before assuming how APIs work. Specifically:
 - Route handlers use `NextRequest` / `NextResponse` (not `req`/`res`)
 - `cookies()` and `headers()` from `next/headers` are async in Next.js 15
 - Server components are async by default; do not add `'use client'` unless you need browser APIs or React state
@@ -48,7 +48,7 @@ Every agent output that reaches a human must carry `nodeIds: string[]` pointing 
 - **Agent roster** → `AGENTS.md` — purpose, inputs, outputs, and file locations for all 8 agents
 - **System architecture** → `docs/ARCHITECTURE.md` — data flow, directory structure, demo mode
 - **Demo flow** → `DEMO.md` — the 10-step demo walkthrough; read this before changing any UI surface that appears in the demo
-- **Fixture data** → `src/lib/fixtures/` — Hartwell Robotics fixture (40 people, 5 projects, 7 ADRs, ~500 graph nodes). The auth migration storyline (ADR-007 → Slack debate → PR #482 → CRITICAL drift) is the centrepiece of the demo. Do not break it.
+- **Fixture data** → `src/lib/fixtures/` — Hartwell Robotics fixture (40 people, 5 projects, 7 ADRs, ~500 graph nodes). The auth migration storyline (ADR-007 → Slack debate → PR #482 → CRITICAL drift) is the centerpiece of the demo. Do not break it.
 - **Graph store** → `src/lib/graph/store.ts` + `src/lib/graph/mutations.ts`
 - **Eval harness** → `npm run eval` — run after any prompt or agent logic change
 
