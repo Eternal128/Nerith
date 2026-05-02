@@ -1,4 +1,3 @@
-import { formatDistanceToNow } from 'date-fns'
 import { DECISIONS } from '@/lib/fixtures/decisions'
 import { StatusPill } from '@/components/ui'
 import { AlertTriangle } from 'lucide-react'

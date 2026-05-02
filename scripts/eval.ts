@@ -53,7 +53,7 @@ async function evalDriftWatcher(): Promise<EvalResult> {
   const results = []
 
   for (const goldenCase of golden.cases) {
-    const output = await runDriftWatcher(goldenCase.input as { workspaceId: string; windowDays?: number })
+    const output = await runDriftWatcher(goldenCase.input as { workspaceId: string; windowDays: number })
     const expected = goldenCase.expected
 
     let passed = true
