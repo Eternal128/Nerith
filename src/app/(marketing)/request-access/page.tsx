@@ -6,60 +6,72 @@ export default function RequestAccessPage() {
   const [submitted, setSubmitted] = useState(false)
 
   return (
-    <div className="max-w-lg mx-auto px-6 py-16">
-      <div className="mb-8">
-        <h1 className="font-serif text-4xl mb-4">Request early access</h1>
-        <p className="text-lg text-[var(--color-muted)]">
-          We&#39;re onboarding 50 engineering teams in 2025. Tell us about your org.
-        </p>
-      </div>
+    <div>
+      <section className="py-24 md:py-32">
+        <div className="max-w-6xl mx-auto px-6 md:px-10">
+          <div className="max-w-md">
+            <p className="font-mono text-xs uppercase tracking-[0.18em] text-[var(--color-muted)] mb-4">REQUEST ACCESS</p>
+            <h1 className="font-serif text-4xl md:text-5xl leading-tight mb-4">
+              Request early access
+            </h1>
+            <p className="text-base leading-relaxed text-[var(--color-ink)]/70 mb-10">
+              We&apos;re onboarding 50 engineering teams in 2025. We review every application personally.
+            </p>
 
-      {submitted ? (
-        <div className="card p-6 text-center">
-          <div className="font-serif text-xl mb-2">You&#39;re on the list.</div>
-          <p className="text-sm text-[var(--color-muted)]">
-            We&#39;ll be in touch within 48 hours. In the meantime, explore the demo.
-          </p>
-        </div>
-      ) : (
-        <form
-          className="space-y-4"
-          onSubmit={(e) => {
-            e.preventDefault()
-            setSubmitted(true)
-          }}
-        >
-          {[
-            { label: 'Full name', name: 'name', type: 'text', placeholder: 'Priya Nair' },
-            { label: 'Work email', name: 'email', type: 'email', placeholder: 'priya@company.com' },
-            { label: 'Company', name: 'company', type: 'text', placeholder: 'Hartwell Robotics' },
-            { label: 'Engineering team size', name: 'teamSize', type: 'text', placeholder: '20–50' },
-          ].map(({ label, name, type, placeholder }) => (
-            <div key={name}>
-              <label className="block text-xs font-medium mb-1.5">{label}</label>
-              <input type={type} name={name} placeholder={placeholder} required className="input" />
-            </div>
-          ))}
+            {submitted ? (
+              <div className="bg-[var(--color-paper)] border border-[var(--color-rule)] rounded-lg p-8">
+                <div className="font-serif text-2xl mb-3">You&apos;re on the list.</div>
+                <p className="text-sm text-[var(--color-ink)]/70">
+                  We&apos;ll be in touch within 48 hours. In the meantime, explore the demo.
+                </p>
+                <a href="/app/feed" className="btn btn-primary mt-6 inline-flex">Open the demo →</a>
+              </div>
+            ) : (
+              <form
+                className="space-y-8"
+                onSubmit={(e) => {
+                  e.preventDefault()
+                  setSubmitted(true)
+                }}
+              >
+                {[
+                  { label: 'Full name', name: 'name', type: 'text', placeholder: 'Priya Nair' },
+                  { label: 'Work email', name: 'email', type: 'email', placeholder: 'priya@company.com' },
+                  { label: 'Company', name: 'company', type: 'text', placeholder: 'Hartwell Robotics' },
+                  { label: 'Engineering team size', name: 'teamSize', type: 'text', placeholder: '20–50' },
+                ].map(({ label, name, type, placeholder }) => (
+                  <div key={name}>
+                    <label className="block text-xs font-mono uppercase tracking-[0.12em] text-[var(--color-muted)] mb-2">{label}</label>
+                    <input
+                      type={type}
+                      name={name}
+                      placeholder={placeholder}
+                      required
+                      className="w-full bg-transparent border-b border-[var(--color-rule)] focus:border-[var(--color-ink)] py-2 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-muted)] outline-none transition-colors"
+                    />
+                  </div>
+                ))}
 
-          <div>
-            <label className="block text-xs font-medium mb-1.5">What&#39;s your biggest context problem?</label>
-            <textarea
-              name="problem"
-              rows={3}
-              className="input resize-none"
-              placeholder="Decisions aren't tracked. Sales commits to things engineering doesn't know about. Our retros are archaeology sessions..."
-            />
+                <div>
+                  <label className="block text-xs font-mono uppercase tracking-[0.12em] text-[var(--color-muted)] mb-2">
+                    What&apos;s your biggest context problem?
+                  </label>
+                  <textarea
+                    name="problem"
+                    rows={4}
+                    className="w-full bg-transparent border-b border-[var(--color-rule)] focus:border-[var(--color-ink)] py-2 text-sm text-[var(--color-ink)] placeholder:text-[var(--color-muted)] outline-none transition-colors resize-none"
+                    placeholder="Decisions aren't tracked. Sales commits to things engineering doesn't know about. Our retros are archaeology sessions..."
+                  />
+                </div>
+
+                <button type="submit" className="btn btn-primary">
+                  Request access →
+                </button>
+              </form>
+            )}
           </div>
-
-          <button type="submit" className="btn btn-primary w-full justify-center">
-            Request access
-          </button>
-
-          <p className="text-xs text-center text-[var(--color-muted)]">
-            No spam. We review every application personally.
-          </p>
-        </form>
-      )}
+        </div>
+      </section>
     </div>
   )
 }
