@@ -5,7 +5,9 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 
-const VOICE_OPTIONS = [
+type VoiceOption = "direct" | "warm" | "confident" | "understated";
+
+const VOICE_OPTIONS: { value: VoiceOption; label: string; description: string }[] = [
   { value: "direct", label: "Direct", description: "Short, no-fluff sentences" },
   { value: "warm", label: "Warm", description: "Personable and human" },
   { value: "confident", label: "Confident", description: "Assertive, facts-first" },
@@ -13,14 +15,44 @@ const VOICE_OPTIONS = [
 ];
 
 export default function SettingsPage() {
-  const [voice, setVoice] = useState("direct");
+  const [voice, setVoice] = useState<VoiceOption>("direct");
   const [voiceNotes, setVoiceNotes] = useState("");
+  const [byokOpenAI, setByokOpenAI] = useState("");
+  const [byokAnthropic, setByokAnthropic] = useState("");
+  const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
-  const handleSave = () => {
-    // TODO: Save to API
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError("");
+
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          voicePreset: voice,
+          voiceNotes,
+          byokOpenAI,
+          byokAnthropic,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(
+          typeof data.error === "string" ? data.error : "Failed to save settings"
+        );
+      }
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Failed to save settings");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -85,17 +117,27 @@ export default function SettingsPage() {
               label="Anthropic API key"
               placeholder="sk-ant-..."
               type="password"
+              value={byokAnthropic}
+              onChange={(e) => setByokAnthropic(e.target.value)}
             />
             <Input
               label="OpenAI API key"
               placeholder="sk-..."
               type="password"
+              value={byokOpenAI}
+              onChange={(e) => setByokOpenAI(e.target.value)}
             />
           </CardContent>
         </Card>
 
-        <Button size="lg" onClick={handleSave}>
-          {saved ? "Saved!" : "Save settings"}
+        {saveError && (
+          <p className="text-sm text-red-500" role="alert">
+            {saveError}
+          </p>
+        )}
+
+        <Button size="lg" onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : saved ? "Saved!" : "Save settings"}
         </Button>
       </div>
     </div>

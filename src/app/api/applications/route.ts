@@ -3,6 +3,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { auth } from "@/lib/auth";
 import { isDemoMode } from "@/lib/env";
+import { DEMO_APPLICATIONS } from "@/lib/fixtures/demo";
 
 const CreateSchema = z.object({
   company: z.string().min(1),
@@ -12,36 +13,6 @@ const CreateSchema = z.object({
   jobUrl: z.string().optional(),
   status: z.string().default("drafting"),
 });
-
-const DEMO_APPLICATIONS = [
-  {
-    id: "demo-1",
-    company: "Vercel",
-    role: "Senior Software Engineer",
-    status: "interview",
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    letter: "Sample cover letter...",
-    jobDescText: "Build the future of the web",
-  },
-  {
-    id: "demo-2",
-    company: "Linear",
-    role: "Product Designer",
-    status: "sent",
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    letter: "Sample cover letter...",
-    jobDescText: "Design tools that developers love",
-  },
-  {
-    id: "demo-3",
-    company: "Stripe",
-    role: "Staff Engineer",
-    status: "drafting",
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-    letter: "Sample cover letter...",
-    jobDescText: "Infrastructure at scale",
-  },
-];
 
 export async function GET() {
   if (isDemoMode) {

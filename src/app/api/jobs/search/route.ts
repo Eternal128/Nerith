@@ -37,35 +37,49 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  // Try Remotive API (no key required)
+  // Try Remotive API (no key required) with a 5-second timeout
   try {
     if (query) {
-      const remotiveRes = await fetch(
-        `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(query)}&limit=10`,
-        { next: { revalidate: 300 } }
-      );
-      if (remotiveRes.ok) {
-        const data = (await remotiveRes.json()) as { jobs?: RemotiveJob[] };
-        const remotiveJobs = (data.jobs ?? []).slice(0, 10).map((j) => ({
-          id: `remotive-${j.id}`,
-          title: j.title,
-          company: j.company_name,
-          location: j.candidate_required_location || "Remote",
-          salary: j.salary || "Not disclosed",
-          type: j.job_type || "Full-time",
-          posted: j.publication_date,
-          logo: j.company_logo_url,
-          tags: j.tags?.slice(0, 5) ?? [],
-          description:
-            j.description?.replace(/<[^>]*>/g, "").slice(0, 200) + "...",
-          url: j.url,
-        }));
-        results = [...remotiveJobs, ...results];
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+      try {
+        const remotiveRes = await fetch(
+          `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(query)}&limit=10`,
+          { next: { revalidate: 300 }, signal: controller.signal }
+        );
+        clearTimeout(timeoutId);
+
+        if (remotiveRes.ok) {
+          const data = (await remotiveRes.json()) as { jobs?: RemotiveJob[] };
+          const remotiveJobs = (data.jobs ?? []).slice(0, 10).map((j) => ({
+            id: `remotive-${j.id}`,
+            title: j.title,
+            company: j.company_name,
+            location: j.candidate_required_location || "Remote",
+            salary: j.salary || "Not disclosed",
+            type: j.job_type || "Full-time",
+            posted: j.publication_date,
+            logo: j.company_logo_url,
+            tags: j.tags?.slice(0, 5) ?? [],
+            description:
+              j.description?.replace(/<[^>]*>/g, "").slice(0, 200) + "...",
+            url: j.url,
+          }));
+          results = [...remotiveJobs, ...results];
+        }
+      } finally {
+        clearTimeout(timeoutId);
       }
     }
   } catch (err) {
-    // Log warning but fall back to fixtures silently for the user
-    console.warn("Remotive API unavailable, using fixture jobs:", err instanceof Error ? err.message : err);
+    // Remotive is optional — fall back to fixtures silently for the user
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        "Remotive API unavailable, using fixture jobs:",
+        err instanceof Error ? err.message : String(err)
+      );
+    }
   }
 
   return NextResponse.json({ jobs: results.slice(0, 30) });

@@ -1,4 +1,4 @@
-import { callLLM } from "../llm/router";
+import { callLLM, type LLMResponse } from "../llm/router";
 import { buildSystemPrompt, buildUserPrompt } from "./prompt";
 import { lintLetter } from "./linter";
 import { type VoicePreset } from "./voice";
@@ -17,36 +17,31 @@ export async function generateCoverLetter(params: GenerateParams): Promise<strin
   const systemPrompt = buildSystemPrompt(params.voice, params.voiceNotes);
   const userPrompt = buildUserPrompt(params);
 
-  const response = await callLLM([
+  // callLLM(messages, false) always returns LLMResponse — the overload guarantees it
+  const response: LLMResponse = await callLLM([
     { role: "system", content: systemPrompt },
     { role: "user", content: userPrompt },
   ]);
 
-  if ("text" in response && "mock" in response) {
-    const { text, mock } = response;
-    const { clean, issues } = lintLetter(text);
+  const { text, mock } = response;
+  const { clean, issues } = lintLetter(text);
 
-    const bannedPhraseIssues = issues.filter((i) => i.type === "banned_phrase");
-    if (bannedPhraseIssues.length > 0 && !mock) {
-      const retryResponse = await callLLM([
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
-        { role: "assistant", content: text },
-        {
-          role: "user",
-          content: `Rewrite the letter. Remove these phrases: ${bannedPhraseIssues.map((i) => `"${i.text}"`).join(", ")}. Keep everything else the same.`,
-        },
-      ]);
-      if ("text" in retryResponse) {
-        const { clean: retryClean } = lintLetter(retryResponse.text);
-        return retryClean;
-      }
-    }
-
-    return clean;
+  const bannedPhraseIssues = issues.filter((i) => i.type === "banned_phrase");
+  if (bannedPhraseIssues.length > 0 && !mock) {
+    const retryResponse: LLMResponse = await callLLM([
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+      { role: "assistant", content: text },
+      {
+        role: "user",
+        content: `Rewrite the letter. Remove these phrases: ${bannedPhraseIssues.map((i) => `"${i.text}"`).join(", ")}. Keep everything else the same.`,
+      },
+    ]);
+    const { clean: retryClean } = lintLetter(retryResponse.text);
+    return retryClean;
   }
 
-  throw new Error("Unexpected LLM response type");
+  return clean;
 }
 
 export async function generateCoverLetterStream(
@@ -61,5 +56,5 @@ export async function generateCoverLetterStream(
       { role: "user", content: userPrompt },
     ],
     true
-  ) as Promise<ReadableStream<string>>;
+  );
 }

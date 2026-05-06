@@ -4,9 +4,7 @@ import { generateCoverLetter } from "@/lib/cover-letter/generate";
 import { isDemoMode } from "@/lib/env";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-
-const DEMO_RESUME_TEXT =
-  "Software engineer with 5 years of experience in TypeScript, React, and Node.js. Previously at Acme Corp where I led a team of 4 engineers.";
+import { DEMO_RESUME_TEXT } from "@/lib/fixtures/demo";
 
 const GenerateSchema = z.object({
   company: z.string().min(1),
