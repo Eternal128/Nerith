@@ -34,9 +34,11 @@ export default function LandingPage() {
 
         <RevealOnScroll delay={0.3}>
           <div className="mt-10 flex items-center gap-4">
-            <MagneticButton className="bg-foreground text-background h-12 px-8 text-sm font-medium rounded-lg hover:opacity-80 transition-opacity">
-              <Link href="/app">Start for free</Link>
-            </MagneticButton>
+            <Link href="/app">
+              <MagneticButton className="bg-foreground text-background h-12 px-8 text-sm font-medium rounded-lg hover:opacity-80 transition-opacity">
+                Start for free
+              </MagneticButton>
+            </Link>
             <span className="text-sm text-muted-foreground">
               No credit card required
             </span>

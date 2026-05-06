@@ -55,6 +55,10 @@ export function CustomCursor() {
     return () => {
       cancelAnimationFrame(rafId);
       document.removeEventListener("mousemove", onMouseMove);
+      links.forEach((el) => {
+        el.removeEventListener("mouseenter", onMouseEnterLink);
+        el.removeEventListener("mouseleave", onMouseLeaveLink);
+      });
     };
   }, []);
 

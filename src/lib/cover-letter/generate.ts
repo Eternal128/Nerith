@@ -22,25 +22,31 @@ export async function generateCoverLetter(params: GenerateParams): Promise<strin
     { role: "user", content: userPrompt },
   ]);
 
-  const { text, mock } = response as { text: string; mock: boolean };
-  const { clean, issues } = lintLetter(text);
+  if ("text" in response && "mock" in response) {
+    const { text, mock } = response;
+    const { clean, issues } = lintLetter(text);
 
-  const bannedPhraseIssues = issues.filter((i) => i.type === "banned_phrase");
-  if (bannedPhraseIssues.length > 0 && !mock) {
-    const retryResponse = await callLLM([
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt },
-      { role: "assistant", content: text },
-      {
-        role: "user",
-        content: `Rewrite the letter. Remove these phrases: ${bannedPhraseIssues.map((i) => `"${i.text}"`).join(", ")}. Keep everything else the same.`,
-      },
-    ]);
-    const { clean: retryClean } = lintLetter((retryResponse as { text: string }).text);
-    return retryClean;
+    const bannedPhraseIssues = issues.filter((i) => i.type === "banned_phrase");
+    if (bannedPhraseIssues.length > 0 && !mock) {
+      const retryResponse = await callLLM([
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt },
+        { role: "assistant", content: text },
+        {
+          role: "user",
+          content: `Rewrite the letter. Remove these phrases: ${bannedPhraseIssues.map((i) => `"${i.text}"`).join(", ")}. Keep everything else the same.`,
+        },
+      ]);
+      if ("text" in retryResponse) {
+        const { clean: retryClean } = lintLetter(retryResponse.text);
+        return retryClean;
+      }
+    }
+
+    return clean;
   }
 
-  return clean;
+  throw new Error("Unexpected LLM response type");
 }
 
 export async function generateCoverLetterStream(

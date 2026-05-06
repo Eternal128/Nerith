@@ -16,10 +16,12 @@ export default function ResumePage() {
   const [rawText, setRawText] = useState("");
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [uploadError, setUploadError] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleFile = async (file: File) => {
     setUploading(true);
+    setUploadError("");
     const formData = new FormData();
     formData.append("file", file);
 
@@ -29,10 +31,11 @@ export default function ResumePage() {
         body: formData,
       });
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
       setParsed(data.parsed);
       setRawText(data.rawText);
     } catch (e) {
-      console.error(e);
+      setUploadError(e instanceof Error ? e.message : "Upload failed");
     } finally {
       setUploading(false);
     }
@@ -82,6 +85,9 @@ export default function ResumePage() {
           {uploading ? "Parsing..." : "Drop your resume here"}
         </p>
         <p className="text-xs text-muted-foreground">PDF, DOCX, or TXT</p>
+        {uploadError && (
+          <p className="text-xs text-red-500 mt-2">{uploadError}</p>
+        )}
       </div>
 
       {parsed && (

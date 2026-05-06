@@ -63,8 +63,9 @@ export async function GET(req: NextRequest) {
         results = [...remotiveJobs, ...results];
       }
     }
-  } catch {
-    // Silently fall back to fixtures
+  } catch (err) {
+    // Log warning but fall back to fixtures silently for the user
+    console.warn("Remotive API unavailable, using fixture jobs:", err instanceof Error ? err.message : err);
   }
 
   return NextResponse.json({ jobs: results.slice(0, 30) });

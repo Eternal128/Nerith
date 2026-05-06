@@ -5,6 +5,9 @@ import { isDemoMode } from "@/lib/env";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 
+const DEMO_RESUME_TEXT =
+  "Software engineer with 5 years of experience in TypeScript, React, and Node.js. Previously at Acme Corp where I led a team of 4 engineers.";
+
 const GenerateSchema = z.object({
   company: z.string().min(1),
   role: z.string().min(1),
@@ -23,8 +26,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
   }
 
-  let resumeText =
-    "Software engineer with 5 years of experience in TypeScript, React, and Node.js. Previously at Acme Corp where I led a team of 4 engineers.";
+  let resumeText = DEMO_RESUME_TEXT;
   let voiceNotes: string | null = null;
 
   if (!isDemoMode) {
