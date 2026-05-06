@@ -1,32 +1,24 @@
-import type { Metadata } from 'next'
-import './globals.css'
-import { Cursor } from '@/components/Cursor'
+import type { Metadata } from "next";
+import "./globals.css";
+import { CustomCursor } from "@/components/motion/CustomCursor";
 
 export const metadata: Metadata = {
-  title: {
-    template: '%s · Nerith',
-    default: 'Nerith — Closed-Loop Engineering Intelligence',
-  },
+  title: "Coverly — Cover letters that don't read like a robot wrote them",
   description:
-    'Nerith ingests Slack, Linear, GitHub, Notion, and call transcripts, builds a live knowledge graph of intent → spec → work → outcome, and runs autonomous agents that detect drift.',
-  openGraph: {
-    title: 'Nerith — Closed-Loop Engineering Intelligence',
-    description: 'The operating system for engineering orgs that never ships the wrong thing.',
-    type: 'website',
-  },
-}
+    "Upload your resume once. Generate tailored, human-sounding cover letters for every job you want.",
+};
 
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
-        <Cursor />
+        <CustomCursor />
         {children}
       </body>
     </html>
-  )
+  );
 }

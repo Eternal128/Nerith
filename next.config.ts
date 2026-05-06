@@ -1,12 +1,12 @@
-import type { NextConfig } from 'next'
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  experimental: {
-    typedRoutes: false,
-  },
   images: {
-    remotePatterns: [],
+    remotePatterns: [
+      { protocol: "https", hostname: "logo.clearbit.com" },
+      { protocol: "https", hostname: "img.logo.dev" },
+    ],
   },
-}
+};
 
-export default nextConfig
+export default nextConfig;

@@ -1,100 +1,97 @@
-import { isDemoMode } from '@/lib/env'
-import { mockLlm } from './mock'
+import { isDemoMode } from "../env";
 
-export interface LLMRequest {
-  system: string
-  user: string
-  model?: string
-  maxTokens?: number
-  temperature?: number
-}
+export type LLMMessage = { role: "system" | "user" | "assistant"; content: string };
 
 export interface LLMResponse {
-  content: string
-  model: string
-  tokensUsed: number
-  mock: boolean
+  text: string;
+  mock: boolean;
 }
 
-export async function llm(req: LLMRequest): Promise<LLMResponse> {
-  const hasOpenAI = process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.length > 0
-  const hasAnthropic = process.env.ANTHROPIC_API_KEY && process.env.ANTHROPIC_API_KEY.length > 0
-
-  if (isDemoMode || (!hasOpenAI && !hasAnthropic)) {
-    return mockLlm(req)
+export async function callLLM(messages: LLMMessage[], stream?: false): Promise<LLMResponse>;
+export async function callLLM(messages: LLMMessage[], stream: true): Promise<ReadableStream<string>>;
+export async function callLLM(
+  messages: LLMMessage[],
+  stream = false
+): Promise<LLMResponse | ReadableStream<string>> {
+  if (isDemoMode) {
+    const { getMockResponse } = await import("./mock");
+    if (stream) {
+      return getMockStream(messages);
+    }
+    return { text: getMockResponse(messages), mock: true };
   }
 
-  if (hasAnthropic) {
-    return callAnthropic(req)
+  if (process.env.ANTHROPIC_API_KEY) {
+    const { generateText, streamText } = await import("ai");
+    const { anthropic } = await import("@ai-sdk/anthropic");
+    const model = anthropic("claude-3-5-sonnet-20241022");
+
+    if (stream) {
+      const result = streamText({
+        model,
+        messages: messages.map((m) => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        })),
+      });
+      return result.textStream;
+    }
+
+    const { text } = await generateText({
+      model,
+      messages: messages.map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+      })),
+    });
+    return { text, mock: false };
   }
 
-  return callOpenAI(req)
+  if (process.env.OPENAI_API_KEY) {
+    const { generateText, streamText } = await import("ai");
+    const { openai } = await import("@ai-sdk/openai");
+    const model = openai("gpt-4o");
+
+    if (stream) {
+      const result = streamText({
+        model,
+        messages: messages.map((m) => ({
+          role: m.role as "user" | "assistant",
+          content: m.content,
+        })),
+      });
+      return result.textStream;
+    }
+
+    const { text } = await generateText({
+      model,
+      messages: messages.map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+      })),
+    });
+    return { text, mock: false };
+  }
+
+  // Fallback to mock
+  const { getMockResponse } = await import("./mock");
+  if (stream) return getMockStream(messages);
+  return { text: getMockResponse(messages), mock: true };
 }
 
-async function callOpenAI(req: LLMRequest): Promise<LLMResponse> {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-      'Content-Type': 'application/json',
+function getMockStream(messages: LLMMessage[]): ReadableStream<string> {
+  // We must use dynamic import asynchronously - read text synchronously via a captured promise
+  const textPromise = import("./mock").then((m) => m.getMockResponse(messages));
+
+  return new ReadableStream({
+    async start(controller) {
+      const text = await textPromise;
+      const words = text.split(" ");
+      for (const word of words) {
+        controller.enqueue(word + " ");
+        await new Promise((r) => setTimeout(r, 30));
+      }
+      controller.close();
     },
-    body: JSON.stringify({
-      model: req.model ?? 'gpt-4o',
-      messages: [
-        { role: 'system', content: req.system },
-        { role: 'user', content: req.user },
-      ],
-      max_tokens: req.maxTokens ?? 2000,
-      temperature: req.temperature ?? 0.2,
-    }),
-  })
-
-  if (!response.ok) {
-    throw new Error(`OpenAI API error: ${response.statusText}`)
-  }
-
-  const data = await response.json() as {
-    choices: Array<{ message: { content: string } }>
-    usage: { total_tokens: number }
-    model: string
-  }
-  return {
-    content: data.choices[0].message.content,
-    model: data.model,
-    tokensUsed: data.usage.total_tokens,
-    mock: false,
-  }
-}
-
-async function callAnthropic(req: LLMRequest): Promise<LLMResponse> {
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: {
-      'x-api-key': process.env.ANTHROPIC_API_KEY ?? '',
-      'anthropic-version': '2023-06-01',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: req.model ?? 'claude-3-5-sonnet-20241022',
-      max_tokens: req.maxTokens ?? 2000,
-      system: req.system,
-      messages: [{ role: 'user', content: req.user }],
-    }),
-  })
-
-  if (!response.ok) {
-    throw new Error(`Anthropic API error: ${response.statusText}`)
-  }
-
-  const data = await response.json() as {
-    content: Array<{ text: string }>
-    usage: { input_tokens: number; output_tokens: number }
-    model: string
-  }
-  return {
-    content: data.content[0].text,
-    model: data.model,
-    tokensUsed: data.usage.input_tokens + data.usage.output_tokens,
-    mock: false,
-  }
+  });
 }
