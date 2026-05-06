@@ -9,6 +9,18 @@ const isDemoModeActive =
     !process.env.OPENAI_API_KEY &&
     !process.env.AUTH_GOOGLE_ID);
 
+// Validate at module init so a misconfigured non-demo deployment surfaces the
+// problem at server startup rather than silently failing during an auth flow.
+if (!isDemoModeActive && (!process.env.AUTH_GOOGLE_ID || !process.env.AUTH_GOOGLE_SECRET)) {
+  // Log rather than throw so Next.js can still render the error page instead of
+  // crashing the process entirely. Auth will fail naturally when the user tries
+  // to sign in with an invalid OAuth client.
+  console.error(
+    "[auth] AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET must be set when not running in DEMO_MODE. " +
+      "Authentication will fail until these are configured."
+  );
+}
+
 // In demo mode auth is bypassed at the page level, so Google credentials
 // are never actually used. We still need *some* value to satisfy NextAuth's
 // schema validation — use clearly non-functional placeholders that will not
@@ -24,26 +36,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Google({
       clientId: googleClientId,
       clientSecret: googleClientSecret,
-      authorization: {
-        params: {
-          // Surface a clear error if real credentials were not provided
-          ...(
-            !isDemoModeActive &&
-            (!process.env.AUTH_GOOGLE_ID || !process.env.AUTH_GOOGLE_SECRET) && {
-              error: "AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET must be set when not running in DEMO_MODE.",
-            }
-          ),
-        },
-      },
     }),
   ],
   callbacks: {
     session({ session, user }) {
-      if (!isDemoModeActive && (!process.env.AUTH_GOOGLE_ID || !process.env.AUTH_GOOGLE_SECRET)) {
-        throw new Error(
-          "AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET must be set when not running in DEMO_MODE."
-        );
-      }
       session.user.id = user.id;
       return session;
     },

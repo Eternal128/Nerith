@@ -225,7 +225,8 @@ function NewApplicationForm() {
   );
 }
 
-// useSearchParams() requires a Suspense boundary in Next.js 15
+// Client components that call useSearchParams() must be wrapped in a Suspense
+// boundary in Next.js 15 App Router. Server components use the searchParams prop instead.
 export default function NewApplicationPage() {
   return (
     <Suspense
