@@ -1,109 +1,145 @@
-import { PEOPLE } from '@/lib/fixtures/people'
+"use client";
+import { useState } from "react";
+import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
+import { Button } from "@/components/ui/Button";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 
-const AGENTS = [
-  { name: 'cartographer', label: 'Cartographer', description: 'Converts events into graph mutations', enabled: true, precision: 0.91, recall: 0.88 },
-  { name: 'drift-watcher', label: 'Drift Watcher', description: 'Detects drift between intent and code', enabled: true, precision: 0.94, recall: 0.82 },
-  { name: 'decision-extractor', label: 'Decision Extractor', description: 'Extracts decisions from prose', enabled: true, precision: 0.87, recall: 0.79 },
-  { name: 'spec-synthesizer', label: 'Spec Synthesizer', description: 'Drafts PRDs from source material', enabled: true, precision: 0.85, recall: null },
-  { name: 'standup-composer', label: 'Standup Composer', description: 'Generates daily standups', enabled: true, precision: 0.96, recall: 0.93 },
-  { name: 'executor', label: 'Executor', description: 'Applies approved actions with audit trail', enabled: true, precision: null, recall: null },
-  { name: 'auditor', label: 'Auditor', description: 'Validates agent outputs for accuracy', enabled: true, precision: 0.98, recall: 0.95 },
-  { name: 'retro-agent', label: 'Retro Agent', description: 'End-of-sprint analysis', enabled: true, precision: 0.89, recall: 0.85 },
-]
+type VoiceOption = "direct" | "warm" | "confident" | "understated";
 
-const MEMBERS = PEOPLE.slice(0, 10)
+const VOICE_OPTIONS: { value: VoiceOption; label: string; description: string }[] = [
+  { value: "direct", label: "Direct", description: "Short, no-fluff sentences" },
+  { value: "warm", label: "Warm", description: "Personable and human" },
+  { value: "confident", label: "Confident", description: "Assertive, facts-first" },
+  { value: "understated", label: "Understated", description: "Quiet confidence" },
+];
 
 export default function SettingsPage() {
+  const [voice, setVoice] = useState<VoiceOption>("direct");
+  const [voiceNotes, setVoiceNotes] = useState("");
+  const [byokOpenAI, setByokOpenAI] = useState("");
+  const [byokAnthropic, setByokAnthropic] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  const handleSave = async () => {
+    setSaving(true);
+    setSaveError("");
+
+    try {
+      const res = await fetch("/api/settings", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          voicePreset: voice,
+          voiceNotes,
+          byokOpenAI,
+          byokAnthropic,
+        }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(
+          typeof data.error === "string" ? data.error : "Failed to save settings"
+        );
+      }
+
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : "Failed to save settings");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-8">
-      <div className="pb-4 border-b border-[var(--color-rule)]">
-        <h1 className="font-serif text-2xl">Settings</h1>
-        <p className="text-sm text-[var(--color-muted)] mt-0.5">Hartwell Robotics workspace</p>
+    <div className="p-8 max-w-2xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-3xl font-serif font-light mb-2">Settings</h1>
       </div>
 
-      {/* Workspace */}
-      <section>
-        <h2 className="font-serif text-lg mb-3">Workspace</h2>
-        <div className="card p-4 space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-[var(--color-muted)]">Organization</span>
-            <span>Hartwell Robotics</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-[var(--color-muted)]">Plan</span>
-            <span className="font-mono text-[var(--color-accent)]">Growth — $420/mo</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-[var(--color-muted)]">Members</span>
-            <span>{PEOPLE.length}</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-[var(--color-muted)]">Mode</span>
-            <span className="font-mono text-[var(--color-warn)]">DEMO_MODE=true</span>
-          </div>
-        </div>
-      </section>
-
-      {/* Agent toggles + eval scores */}
-      <section>
-        <h2 className="font-serif text-lg mb-3">Agents</h2>
-        <div className="space-y-2">
-          {AGENTS.map((agent) => (
-            <div key={agent.name} className="card p-3 flex items-center gap-3">
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium">{agent.label}</span>
-                  <span className={`w-1.5 h-1.5 rounded-full ${agent.enabled ? 'bg-[var(--color-success)]' : 'bg-[var(--color-muted)]'}`} />
-                </div>
-                <div className="text-xs text-[var(--color-muted)]">{agent.description}</div>
-              </div>
-              <div className="flex items-center gap-4 text-xs text-[var(--color-muted)]">
-                {agent.precision != null && (
-                  <div className="text-right">
-                    <div className="text-[10px] uppercase tracking-wider">Precision</div>
-                    <div className="font-mono text-[var(--color-ink)]">{(agent.precision * 100).toFixed(0)}%</div>
-                  </div>
-                )}
-                {agent.recall != null && (
-                  <div className="text-right">
-                    <div className="text-[10px] uppercase tracking-wider">Recall</div>
-                    <div className="font-mono text-[var(--color-ink)]">{(agent.recall * 100).toFixed(0)}%</div>
-                  </div>
-                )}
-              </div>
-              <button
-                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${agent.enabled ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-rule)]'}`}
-              >
-                <span
-                  className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${agent.enabled ? 'translate-x-5' : 'translate-x-1'}`}
-                />
-              </button>
+      <div className="space-y-6">
+        <Card>
+          <CardHeader>
+            <h2 className="font-serif text-lg">Writing voice</h2>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-2 mb-4">
+              {VOICE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setVoice(opt.value)}
+                  className={`p-3 rounded-lg border text-left transition-colors ${
+                    voice === opt.value
+                      ? "border-foreground bg-foreground/5"
+                      : "border-border hover:border-foreground/30"
+                  }`}
+                >
+                  <p className="text-sm font-medium">{opt.label}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {opt.description}
+                  </p>
+                </button>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
+          </CardContent>
+        </Card>
 
-      {/* Members */}
-      <section>
-        <h2 className="font-serif text-lg mb-3">Members ({PEOPLE.length})</h2>
-        <div className="card divide-y divide-[var(--color-rule)]">
-          {MEMBERS.map((person) => (
-            <div key={person.id} className="flex items-center gap-3 p-3">
-              <div className="w-7 h-7 rounded-full bg-[var(--color-accent-soft)] flex items-center justify-center text-[10px] font-medium text-[var(--color-accent)] shrink-0">
-                {person.name.split(' ').map((n) => n[0]).join('')}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-medium">{person.name}</div>
-                <div className="text-xs text-[var(--color-muted)]">{person.role}</div>
-              </div>
-              <span className="text-[10px] text-[var(--color-muted)] font-mono">{person.team}</span>
-            </div>
-          ))}
-          <div className="p-3 text-xs text-center text-[var(--color-muted)]">
-            +{PEOPLE.length - MEMBERS.length} more members
-          </div>
-        </div>
-      </section>
+        <Card>
+          <CardHeader>
+            <h2 className="font-serif text-lg">Voice notes</h2>
+            <p className="text-sm text-muted-foreground">
+              Tell us how you naturally write. The more specific, the better.
+            </p>
+          </CardHeader>
+          <CardContent>
+            <Textarea
+              placeholder={`Examples:\n"I write like I talk. Short sentences. Plain words."\n"I'm direct but not cold."\n"I reference specific details, never generalities."`}
+              rows={5}
+              value={voiceNotes}
+              onChange={(e) => setVoiceNotes(e.target.value)}
+            />
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <h2 className="font-serif text-lg">API keys (BYOK)</h2>
+            <p className="text-sm text-muted-foreground">
+              Use your own API keys for unlimited generation.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Input
+              label="Anthropic API key"
+              placeholder="sk-ant-..."
+              type="password"
+              value={byokAnthropic}
+              onChange={(e) => setByokAnthropic(e.target.value)}
+            />
+            <Input
+              label="OpenAI API key"
+              placeholder="sk-..."
+              type="password"
+              value={byokOpenAI}
+              onChange={(e) => setByokOpenAI(e.target.value)}
+            />
+          </CardContent>
+        </Card>
+
+        {saveError && (
+          <p className="text-sm text-red-500" role="alert">
+            {saveError}
+          </p>
+        )}
+
+        <Button size="lg" onClick={handleSave} disabled={saving}>
+          {saving ? "Saving..." : saved ? "Saved!" : "Save settings"}
+        </Button>
+      </div>
     </div>
-  )
+  );
 }
