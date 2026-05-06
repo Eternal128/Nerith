@@ -13,25 +13,37 @@ const isDemoModeActive =
 // are never actually used. We still need *some* value to satisfy NextAuth's
 // schema validation — use clearly non-functional placeholders that will not
 // accidentally succeed against Google's OAuth endpoints.
-const googleClientId = process.env.AUTH_GOOGLE_ID ?? (isDemoModeActive ? "__demo__" : undefined);
-const googleClientSecret = process.env.AUTH_GOOGLE_SECRET ?? (isDemoModeActive ? "__demo__" : undefined);
-
-if (!isDemoModeActive && (!process.env.AUTH_GOOGLE_ID || !process.env.AUTH_GOOGLE_SECRET)) {
-  throw new Error(
-    "AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET must be set when not running in DEMO_MODE."
-  );
-}
+const googleClientId =
+  process.env.AUTH_GOOGLE_ID ?? (isDemoModeActive ? "__demo__" : "");
+const googleClientSecret =
+  process.env.AUTH_GOOGLE_SECRET ?? (isDemoModeActive ? "__demo__" : "");
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(db),
   providers: [
     Google({
-      clientId: googleClientId!,
-      clientSecret: googleClientSecret!,
+      clientId: googleClientId,
+      clientSecret: googleClientSecret,
+      authorization: {
+        params: {
+          // Surface a clear error if real credentials were not provided
+          ...(
+            !isDemoModeActive &&
+            (!process.env.AUTH_GOOGLE_ID || !process.env.AUTH_GOOGLE_SECRET) && {
+              error: "AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET must be set when not running in DEMO_MODE.",
+            }
+          ),
+        },
+      },
     }),
   ],
   callbacks: {
     session({ session, user }) {
+      if (!isDemoModeActive && (!process.env.AUTH_GOOGLE_ID || !process.env.AUTH_GOOGLE_SECRET)) {
+        throw new Error(
+          "AUTH_GOOGLE_ID and AUTH_GOOGLE_SECRET must be set when not running in DEMO_MODE."
+        );
+      }
       session.user.id = user.id;
       return session;
     },

@@ -9,8 +9,9 @@ const UpdateSettingsSchema = z.object({
     .enum(["direct", "warm", "confident", "understated"])
     .optional(),
   voiceNotes: z.string().max(2000).optional(),
-  byokOpenAI: z.string().max(200).optional(),
-  byokAnthropic: z.string().max(200).optional(),
+  // Empty strings are stored as null — omitting the field leaves the DB value unchanged
+  byokOpenAI: z.string().max(200).transform((v) => v || null).optional(),
+  byokAnthropic: z.string().max(200).transform((v) => v || null).optional(),
 });
 
 export async function PATCH(req: NextRequest) {
@@ -32,19 +33,10 @@ export async function PATCH(req: NextRequest) {
 
   const updated = await db.user.update({
     where: { id: session.user.id },
+    // Only include fields that were explicitly provided in the request.
+    // Zod's `.optional()` means absent keys are `undefined` and spread-filtered by JS.
     data: {
-      ...(parsed.data.voicePreset !== undefined && {
-        voicePreset: parsed.data.voicePreset,
-      }),
-      ...(parsed.data.voiceNotes !== undefined && {
-        voiceNotes: parsed.data.voiceNotes,
-      }),
-      ...(parsed.data.byokOpenAI !== undefined && {
-        byokOpenAI: parsed.data.byokOpenAI || null,
-      }),
-      ...(parsed.data.byokAnthropic !== undefined && {
-        byokAnthropic: parsed.data.byokAnthropic || null,
-      }),
+      ...parsed.data,
     },
     select: { voicePreset: true, voiceNotes: true },
   });

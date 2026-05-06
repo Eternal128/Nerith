@@ -23,12 +23,20 @@ export default function ApplicationsPage() {
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
   const [dragging, setDragging] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState("");
 
   useEffect(() => {
     fetch("/api/applications")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`Failed to load applications (${r.status})`);
+        return r.json();
+      })
       .then((d) => {
         setApplications(d.applications ?? []);
+        setLoading(false);
+      })
+      .catch((err: unknown) => {
+        setFetchError(err instanceof Error ? err.message : "Failed to load applications");
         setLoading(false);
       });
   }, []);
@@ -51,6 +59,12 @@ export default function ApplicationsPage() {
           Track where every application stands.
         </p>
       </div>
+
+      {fetchError && (
+        <p className="text-sm text-red-500 mb-6" role="alert">
+          {fetchError}
+        </p>
+      )}
 
       <div className="flex gap-4 overflow-x-auto pb-4">
         {COLUMNS.map((col) => (

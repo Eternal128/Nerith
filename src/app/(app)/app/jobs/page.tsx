@@ -19,18 +19,30 @@ interface Job {
   url: string;
 }
 
+// Key used to pass job data to the apply page via sessionStorage to avoid
+// URL length limits (job descriptions can be thousands of characters).
+const JOB_PREFILL_KEY = "coverly:job-prefill";
+
 export default function JobsPage() {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState("");
   const router = useRouter();
 
   const search = useCallback(async (q: string) => {
     setLoading(true);
-    const res = await fetch(`/api/jobs/search?q=${encodeURIComponent(q)}`);
-    const data = await res.json();
-    setJobs(data.jobs ?? []);
-    setLoading(false);
+    setFetchError("");
+    try {
+      const res = await fetch(`/api/jobs/search?q=${encodeURIComponent(q)}`);
+      if (!res.ok) throw new Error(`Search failed (${res.status})`);
+      const data = await res.json();
+      setJobs(data.jobs ?? []);
+    } catch (err) {
+      setFetchError(err instanceof Error ? err.message : "Failed to load jobs");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -41,6 +53,21 @@ export default function JobsPage() {
   useEffect(() => {
     search("");
   }, [search]);
+
+  const handleApply = (job: Job) => {
+    // Store the full job data in sessionStorage to avoid URL length limits
+    try {
+      sessionStorage.setItem(
+        JOB_PREFILL_KEY,
+        JSON.stringify({ company: job.company, role: job.title, description: job.description })
+      );
+    } catch {
+      // sessionStorage unavailable — fall back to URL params with truncated description
+    }
+    router.push(
+      `/app/apply/new?company=${encodeURIComponent(job.company)}&role=${encodeURIComponent(job.title)}`
+    );
+  };
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
@@ -56,6 +83,12 @@ export default function JobsPage() {
           className="max-w-xl"
         />
       </div>
+
+      {fetchError && (
+        <p className="text-sm text-red-500 mb-4" role="alert">
+          {fetchError}
+        </p>
+      )}
 
       <div className="space-y-3">
         {loading ? (
@@ -90,11 +123,7 @@ export default function JobsPage() {
                 </div>
                 <div className="flex flex-col items-end gap-2 shrink-0">
                   <button
-                    onClick={() =>
-                      router.push(
-                        `/app/apply/new?company=${encodeURIComponent(job.company)}&role=${encodeURIComponent(job.title)}&jd=${encodeURIComponent(job.description)}`
-                      )
-                    }
+                    onClick={() => handleApply(job)}
                     className="text-xs bg-foreground text-background px-3 py-1.5 rounded-md hover:opacity-80 transition-opacity font-medium whitespace-nowrap"
                   >
                     Write letter

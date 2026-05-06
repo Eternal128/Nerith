@@ -1,8 +1,9 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Button } from "@/components/ui/Button";
@@ -25,20 +26,52 @@ const VOICE_LABELS: Record<string, string> = {
   understated: "Understated — quiet confidence",
 };
 
-export default function NewApplicationPage() {
+const JOB_PREFILL_KEY = "coverly:job-prefill";
+
+function NewApplicationForm() {
   const [letter, setLetter] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [copied, setCopied] = useState(false);
+  const searchParams = useSearchParams();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
     watch,
+    setValue,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: { voice: "direct" },
   });
+
+  // Pre-fill form from jobs page — data is passed via sessionStorage to avoid
+  // URL length limits, with company and role as fallback URL params.
+  useEffect(() => {
+    const company = searchParams.get("company");
+    const role = searchParams.get("role");
+
+    if (company) setValue("company", company);
+    if (role) setValue("role", role);
+
+    try {
+      const stored = sessionStorage.getItem(JOB_PREFILL_KEY);
+      if (stored) {
+        const prefill = JSON.parse(stored) as {
+          company?: string;
+          role?: string;
+          description?: string;
+        };
+        if (prefill.company) setValue("company", prefill.company);
+        if (prefill.role) setValue("role", prefill.role);
+        if (prefill.description) setValue("jobDescription", prefill.description);
+        sessionStorage.removeItem(JOB_PREFILL_KEY);
+      }
+    } catch {
+      // sessionStorage not available — URL params already applied above
+    }
+  }, [searchParams, setValue]);
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
@@ -62,8 +95,14 @@ export default function NewApplicationPage() {
     }
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(letter);
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(letter);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setError("Could not copy to clipboard. Please select and copy manually.");
+    }
   };
 
   return (
@@ -133,7 +172,11 @@ export default function NewApplicationPage() {
             {loading ? "Writing..." : "Generate cover letter"}
           </Button>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && (
+            <p className="text-sm text-red-500" role="alert">
+              {error}
+            </p>
+          )}
         </form>
 
         {/* Preview */}
@@ -156,8 +199,12 @@ export default function NewApplicationPage() {
                 <p className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
                   Cover letter
                 </p>
-                <Button variant="secondary" size="sm" onClick={copyToClipboard}>
-                  Copy
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={copyToClipboard}
+                >
+                  {copied ? "Copied!" : "Copy"}
                 </Button>
               </div>
               <div className="font-serif text-sm leading-relaxed whitespace-pre-wrap">
@@ -175,5 +222,20 @@ export default function NewApplicationPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+// useSearchParams() requires a Suspense boundary in Next.js 15
+export default function NewApplicationPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-8">
+          <Skeleton className="h-96 rounded-xl" />
+        </div>
+      }
+    >
+      <NewApplicationForm />
+    </Suspense>
   );
 }

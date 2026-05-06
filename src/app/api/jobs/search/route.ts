@@ -48,7 +48,6 @@ export async function GET(req: NextRequest) {
           `https://remotive.com/api/remote-jobs?search=${encodeURIComponent(query)}&limit=10`,
           { next: { revalidate: 300 }, signal: controller.signal }
         );
-        clearTimeout(timeoutId);
 
         if (remotiveRes.ok) {
           const data = (await remotiveRes.json()) as { jobs?: RemotiveJob[] };
