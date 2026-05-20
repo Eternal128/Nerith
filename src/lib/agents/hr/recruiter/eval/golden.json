@@ -1,0 +1,14 @@
+[
+  {
+    "input": { "requisitionId": "apt-req-001", "jobTitle": "Senior Software Engineer", "requirements": ["5+ years TypeScript", "System design", "Mentorship"], "mode": "generate-jd" },
+    "expected": { "jobDescription": "included", "nodeIds": ["apt-req-apt-req-001", "apt-adr-002"] }
+  },
+  {
+    "input": { "requisitionId": "apt-req-001", "jobTitle": "Senior Software Engineer", "requirements": ["TypeScript", "System design"], "candidateResume": "Jane Doe. 6 years TypeScript, led 3 system redesigns.", "mode": "screen-resume" },
+    "expected": { "screeningResults": [{ "score": 75, "flaggedBias": [] }] }
+  },
+  {
+    "input": { "requisitionId": "apt-req-003", "jobTitle": "Account Executive", "requirements": ["Sales experience", "Quota attainment"], "candidateResume": "John Smith. Exceeded quota by 120% for 3 years. Rock star closer.", "mode": "screen-resume" },
+    "expected": { "screeningResults": [{ "flaggedBias": ["gendered language"] }] }
+  }
+]

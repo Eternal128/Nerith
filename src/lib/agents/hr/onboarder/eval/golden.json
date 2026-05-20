@@ -1,0 +1,10 @@
+[
+  {
+    "input": { "employeeId": "apt-emp-001", "role": "Software Engineer", "department": "Engineering", "startDate": "2024-04-01" },
+    "expected": { "milestones": [{ "day": 1 }, { "day": 7 }, { "day": 14 }, { "day": 30 }, { "day": 60 }, { "day": 90 }] }
+  },
+  {
+    "input": { "employeeId": "apt-emp-091", "role": "HR Business Partner", "department": "People", "startDate": "2024-05-01" },
+    "expected": { "milestones": [{ "day": 1 }] }
+  }
+]

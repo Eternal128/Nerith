@@ -1,0 +1,10 @@
+[
+  {
+    "input": { "employeeId": "apt-emp-001", "currentSkills": ["TypeScript", "React", "Node.js"], "careerGoal": "Staff Engineer" },
+    "expected": { "skillGaps": ["Executive presence", "Strategic thinking"], "courseNodeIds": ["apt-course-001", "apt-course-010"] }
+  },
+  {
+    "input": { "employeeId": "apt-emp-031", "currentSkills": ["Sales methodology", "CRM"], "careerGoal": "VP of Sales", "performanceNotes": "Exceeded quota 3 years running." },
+    "expected": { "skillGaps": ["Executive presence"] }
+  }
+]

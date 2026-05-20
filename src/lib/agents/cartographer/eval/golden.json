@@ -1,0 +1,6 @@
+[
+  {
+    "input": { "query": "auth migration" },
+    "expected": { "nodeIds": ["hw-adr-007"], "summary": "Auth migration ADR found" }
+  }
+]

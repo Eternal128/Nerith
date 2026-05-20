@@ -11,7 +11,11 @@
     "test:watch": "vitest",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "seed": "tsx src/lib/fixtures/hartwell/seed-script.ts",
+    "seed:hr": "tsx scripts/seed-hr.ts",
+    "replay": "tsx scripts/replay.ts",
+    "eval": "tsx scripts/eval.ts"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.75",

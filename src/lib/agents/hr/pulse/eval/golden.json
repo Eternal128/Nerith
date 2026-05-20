@@ -1,0 +1,10 @@
+[
+  {
+    "input": { "employeeId": "apt-emp-001", "surveyData": [{ "question": "How satisfied are you at work?", "response": "Very satisfied, I love my team." }] },
+    "expected": { "sentimentScore": 72, "attritionRisk": "low", "burnoutSignals": [] }
+  },
+  {
+    "input": { "teamId": "engineering", "surveyData": [{ "question": "Do you feel overwhelmed?", "response": "Yes, constantly. I have no time for deep work." }], "chatSnippets": ["can't keep up", "exhausted"] },
+    "expected": { "attritionRisk": "high" }
+  }
+]
