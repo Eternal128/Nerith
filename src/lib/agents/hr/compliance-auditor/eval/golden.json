@@ -1,0 +1,14 @@
+[
+  {
+    "input": { "auditTargetId": "apt-req-001", "auditType": "screening-bias", "dataSnapshot": { "passRateMale": 0.72, "passRateFemale": 0.44 } },
+    "expected": { "findings": [{ "severity": "critical", "regulation": "EEOC §703" }], "requiresHumanReview": true }
+  },
+  {
+    "input": { "auditTargetId": "apt-emp-001", "auditType": "pay-equity", "dataSnapshot": { "genderPayGap": 0.062 } },
+    "expected": { "findings": [{ "severity": "warn" }], "requiresHumanReview": true }
+  },
+  {
+    "input": { "auditTargetId": "apt-policy-001", "auditType": "policy-compliance", "dataSnapshot": { "lastReviewed": "2024-01-15" } },
+    "expected": { "findings": [{ "severity": "info" }], "requiresHumanReview": false }
+  }
+]

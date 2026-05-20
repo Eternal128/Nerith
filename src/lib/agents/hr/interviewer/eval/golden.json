@@ -1,0 +1,10 @@
+[
+  {
+    "input": { "candidateId": "apt-cand-001", "requisitionId": "apt-req-001", "transcript": "Interviewer: Tell me about your experience with TypeScript. Candidate: I have 6 years working with TypeScript across frontend and backend services." },
+    "expected": { "overallScore": 80, "recommendation": "advance" }
+  },
+  {
+    "input": { "candidateId": "apt-cand-002", "requisitionId": "apt-req-003", "transcript": "Interviewer: Describe a time you hit quota. Candidate: I exceeded quota by 20% last year through relationship-based selling." },
+    "expected": { "recommendation": "advance" }
+  }
+]

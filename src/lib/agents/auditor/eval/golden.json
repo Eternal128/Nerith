@@ -1,0 +1,10 @@
+[
+  {
+    "input": { "nodeId": "hw-adr-007", "claimText": "ADR-007 proposes Supabase auth migration", "nodeIds": ["hw-adr-007"] },
+    "expected": { "valid": true, "severity": "info" }
+  },
+  {
+    "input": { "nodeId": "hw-pr-482", "claimText": "PR #482 is unreviewed", "nodeIds": [] },
+    "expected": { "valid": false, "severity": "critical" }
+  }
+]
